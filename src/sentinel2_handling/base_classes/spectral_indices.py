@@ -20,36 +20,37 @@ class Sentinel2SpectralIndices(BaseSpectralIndices):
     # upsampled BSI and NDMI to 10m.
     loaded_bands: Dict[str, Raster]
 
-    def __init__(self, loaded_bands: Dict[str, Raster]):
+    def __init__(self, loaded_bands: Dict[str, Raster], only_rgb = False):
         self.loaded_bands = loaded_bands
-        self.cloud_mask = self.compute_cloud_mask(
-            scl_raster=loaded_bands.get(Sentinel2L2ABands.SCL),
-            ref_raster=loaded_bands.get(Sentinel2L2ABands.Red),
-            resample_to_ref=True,
-        )
-        self.ndvi = self.compute_ndvi(
-            nir_raster=loaded_bands.get(Sentinel2L2ABands.NIR),
-            red_raster=loaded_bands.get(Sentinel2L2ABands.Red),
-        )
         self.rgb_image = self.compute_rgb_image(
             red_raster=loaded_bands.get(Sentinel2L2ABands.Red),
             green_raster=loaded_bands.get(Sentinel2L2ABands.Green),
             blue_raster=loaded_bands.get(Sentinel2L2ABands.Blue),
         )
-        self.bsi = self.compute_bsi(
-            nir_raster=loaded_bands.get(Sentinel2L2ABands.NIR),
-            swir_raster=loaded_bands.get(Sentinel2L2ABands.SWIR1),
-            red_raster=loaded_bands.get(Sentinel2L2ABands.Red),
-            blue_raster=loaded_bands.get(Sentinel2L2ABands.Blue),
-        )
-        self.ndmi = self.compute_ndmi(
-            nir_raster=loaded_bands.get(Sentinel2L2ABands.NIR),
-            swir_raster=loaded_bands.get(Sentinel2L2ABands.SWIR1),
-        )
-        self.savi = self.compute_savi(
-            nir_raster=loaded_bands.get(Sentinel2L2ABands.NIR),
-            red_raster=loaded_bands.get(Sentinel2L2ABands.Red)
-        )
+        if not only_rgb:    
+            self.cloud_mask = self.compute_cloud_mask(
+                scl_raster=loaded_bands.get(Sentinel2L2ABands.SCL),
+                ref_raster=loaded_bands.get(Sentinel2L2ABands.Red),
+                resample_to_ref=True,
+            )
+            self.ndvi = self.compute_ndvi(
+                nir_raster=loaded_bands.get(Sentinel2L2ABands.NIR),
+                red_raster=loaded_bands.get(Sentinel2L2ABands.Red),
+            )
+            self.bsi = self.compute_bsi(
+                nir_raster=loaded_bands.get(Sentinel2L2ABands.NIR),
+                swir_raster=loaded_bands.get(Sentinel2L2ABands.SWIR1),
+                red_raster=loaded_bands.get(Sentinel2L2ABands.Red),
+                blue_raster=loaded_bands.get(Sentinel2L2ABands.Blue),
+            )
+            self.ndmi = self.compute_ndmi(
+                nir_raster=loaded_bands.get(Sentinel2L2ABands.NIR),
+                swir_raster=loaded_bands.get(Sentinel2L2ABands.SWIR1),
+            )
+            self.savi = self.compute_savi(
+                nir_raster=loaded_bands.get(Sentinel2L2ABands.NIR),
+                red_raster=loaded_bands.get(Sentinel2L2ABands.Red)
+            )
 
     @staticmethod
     def compute_cloud_mask(scl_raster: Raster, ref_raster:Raster = None, resample_to_ref: bool = False) -> Raster:
