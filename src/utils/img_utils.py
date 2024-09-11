@@ -1,12 +1,26 @@
 import cv2
 import numpy as np
+from skimage.exposure import match_histograms
+from PIL import ImageDraw, ImageFont
 
+
+def add_annotation(image, text, position=(10, 10), font_path = None):
+    draw = ImageDraw.Draw(image)
+    if font_path:
+        font = ImageFont.truetype(font_path, 40)
+    else:
+        font = ImageFont.load_default()  # Use default font
+    draw.text(position, text, font=font, fill='white')  # Change fill color as needed
+    return image
 
 def adjust_contrast_brightness(image, contrast=1.0, brightness=0.0):
     # Adjust contrast and brightness
     adjusted_image = np.clip(contrast * image + brightness, 0, 1)
     return adjusted_image
 
+def match_images(ref_img, src_img):
+    matched_image = match_histograms(src_img, ref_img, channel_axis=-1) 
+    return matched_image
 
 def normalize_image(img):
     """Normalize a 3D RGB image to the [0, 1] range based on the min and max of each channel."""
@@ -19,6 +33,17 @@ def normalize_image(img):
             channel_max - channel_min
         )
     return img_normalized
+
+def normalize_to_uint8(img, max_value=0, min_value = 0, saturate_img = False):
+    #normalization needed to save to png.
+    #saturate if needed
+    if saturate_img:
+        saturate = np.clip(img, min_value,max_value) - min_value
+    else:
+        saturate = img
+
+    dynamic_range = max_value - min_value
+    return ((saturate/dynamic_range) * 255).astype(np.uint8)
 
 
 def apply_histogram_equalization(image):
