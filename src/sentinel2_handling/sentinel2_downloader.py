@@ -57,23 +57,3 @@ def filter_item_list(
     )
     return (good_item_metadata, good_item_processors)
 
-
-def attack_script(bbox, min_usable_pct, end_date, num_days_before_end):
-    item_list = query_sentinel2(
-        bbox=bbox,
-        max_cloud_cover=80,
-        end_date=end_date,
-        num_days_before_end=num_days_before_end,
-    )
-    good_item_dates, good_item_processors = filter_item_list(
-        item_list=item_list, bbox=bbox, min_usable_pct=min_usable_pct
-    )
-
-    for item_proc in good_item_processors:
-        item_proc.load_and_compute_spectral_indices()
-
-    # Steps that must be done:
-    # 1. Compute delta_ndvi
-    # 2. Set a threshold on what is a change we want to see.
-    # 3. Remove pixels that are not impt.
-    # 4. Return polygons?
