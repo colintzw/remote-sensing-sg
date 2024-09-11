@@ -25,25 +25,14 @@ def match_images(ref_img, src_img):
 def normalize_image(img):
     """Normalize a 3D RGB image to the [0, 1] range based on the min and max of each channel."""
     # Normalize each channel independently
-    img_normalized = np.empty_like(img, dtype=np.float32)
-    for i in range(img.shape[-1]):
-        channel_min = np.min(img[:, :, i])
-        channel_max = np.max(img[:, :, i])
-        img_normalized[:, :, i] = (img[:, :, i] - channel_min) / (
-            channel_max - channel_min
-        )
+    min_vals = img.min(axis=(0,1))
+    max_vals = img.max(axis=(0,1))
+    img_normalized = (img - min_vals)/(max_vals - min_vals)
     return img_normalized
 
-def normalize_to_uint8(img, max_value=0, min_value = 0, saturate_img = False):
-    #normalization needed to save to png.
-    #saturate if needed
-    if saturate_img:
-        saturate = np.clip(img, min_value,max_value) - min_value
-    else:
-        saturate = img
-
-    dynamic_range = max_value - min_value
-    return ((saturate/dynamic_range) * 255).astype(np.uint8)
+def convert_to_uint8(img):
+    #needed to save to png.
+    return (img * 255).astype(np.uint8)
 
 
 def apply_histogram_equalization(image):
