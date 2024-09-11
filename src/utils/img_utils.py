@@ -1,16 +1,17 @@
 import cv2
 import numpy as np
 from skimage.exposure import match_histograms
-from PIL import ImageDraw, ImageFont
+from PIL import ImageDraw, ImageFont, Image
 
 
-def add_annotation(image, text, position=(10, 10), font_path = None):
+def add_annotation(image, text, position=(10, 10), font_path = None, font_size = 40, font_color = (255,255,255)):
+    image = Image.fromarray(image)
     draw = ImageDraw.Draw(image)
     if font_path:
-        font = ImageFont.truetype(font_path, 40)
+        font = ImageFont.truetype(font_path, font_size)
     else:
         font = ImageFont.load_default()  # Use default font
-    draw.text(position, text, font=font, fill='white')  # Change fill color as needed
+    draw.text(position, text, font=font, fill=font_color)  # Change fill color as needed
     return image
 
 def adjust_contrast_brightness(image, contrast=1.0, brightness=0.0):
