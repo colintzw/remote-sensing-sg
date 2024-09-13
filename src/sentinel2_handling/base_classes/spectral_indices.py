@@ -27,7 +27,7 @@ class Sentinel2SpectralIndices(BaseSpectralIndices):
             green_raster=loaded_bands.get(Sentinel2L2ABands.Green),
             blue_raster=loaded_bands.get(Sentinel2L2ABands.Blue),
         )
-        if not only_rgb:    
+        if not only_rgb:
             self.cloud_mask = self.compute_cloud_mask(
                 scl_raster=loaded_bands.get(Sentinel2L2ABands.SCL),
                 ref_raster=loaded_bands.get(Sentinel2L2ABands.Red),
@@ -55,7 +55,7 @@ class Sentinel2SpectralIndices(BaseSpectralIndices):
     @staticmethod
     def compute_cloud_mask(scl_raster: Raster, ref_raster:Raster = None, resample_to_ref: bool = False) -> Raster:
         mask_dtype = "uint8"
-        cloud_mask = np.isin(scl_raster.img, [0, 3, 8, 9]).astype(mask_dtype)
+        cloud_mask = np.isin(scl_raster.img, [0, 3, 8, 9,10]).astype(mask_dtype)
         meta = scl_raster.meta.copy()
         meta["dtype"] = mask_dtype
         meta["nodata"] = None
