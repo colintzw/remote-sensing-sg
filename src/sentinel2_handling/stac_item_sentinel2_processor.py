@@ -24,19 +24,18 @@ class StacItemSentinel2Processor:
     partial_meta_20m: Dict
 
     # sentinel 2 bands
-    S2_ASSET_NAMES = [
+    S2_RGB = [
         Sentinel2L2ABands.Blue,
         Sentinel2L2ABands.Green,
         Sentinel2L2ABands.Red,
+    ]
+    S2_ASSET_NAMES = S2_RGB + [
         Sentinel2L2ABands.NIR,
         Sentinel2L2ABands.SWIR1,
         Sentinel2L2ABands.SCL,
     ]
     s2_bands: Dict[str, Raster]
     _bands_loaded: bool = False
-
-    # computed
-    spectral_indices: Sentinel2SpectralIndices
 
     def __init__(self, item, bbox):
         self._item = item
@@ -61,30 +60,37 @@ class StacItemSentinel2Processor:
             out_meta = src.meta.copy()
             out_meta.update(
                 {
-                    "height": out_image.shape[0],
-                    "width": out_image.shape[1],
+                    "height": out_image[0].shape[0],
+                    "width": out_image[0].shape[1],
                     "transform": out_transform,
                 }
             )
             # convert img to HxW
             return Raster(img=out_image[0], meta=out_meta, band_names=[asset_name])
 
-    def _load_and_clip_required_assets(self) -> None:
+    def _load_and_clip_required_assets(self, only_rgb=False) -> None:
+        if only_rgb:
+            assets_to_load = self.S2_RGB
+        else:
+            assets_to_load = self.S2_ASSET_NAMES
+
         self.s2_bands = {
             asset_name: self.__load_and_clip_asset(
                 asset=self._item.assets[asset_name.value], asset_name=asset_name.value
             )
-            for asset_name in self.S2_ASSET_NAMES
+            for asset_name in assets_to_load
         }
         self._bands_loaded = True
 
-    def _compute_spectral_indices(self) -> None:
+    def _compute_spectral_indices(self, only_rgb=False) -> Sentinel2SpectralIndices:
         # indices are computed on initialization
-        self.spectral_indices = Sentinel2SpectralIndices(self.s2_bands)
+        return Sentinel2SpectralIndices(self.s2_bands, only_rgb=only_rgb)
 
-    def load_and_compute_spectral_indices(self) -> None:
-        self._load_and_clip_required_assets()
-        self._compute_spectral_indices()
+    def load_and_compute_spectral_indices(
+        self, only_rgb=False
+    ) -> Sentinel2SpectralIndices:
+        self._load_and_clip_required_assets(only_rgb=only_rgb)
+        return self._compute_spectral_indices(only_rgb=only_rgb)
 
     def compute_usable_pixels(self) -> float:
         if self._bands_loaded:

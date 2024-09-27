@@ -30,6 +30,18 @@ class Raster:
         if len(self.band_names) != self.num_bands:
             raise ValueError("Bad number band names.")
 
+    @classmethod
+    def load_from_tif(cls, path_to_geotiff) -> "Raster":
+        with rasterio.open(path_to_geotiff, "r") as src:
+            # Read all bands
+            image = src.read()
+            # Transpose to get (height, width, channels)
+            image = np.transpose(image, (1, 2, 0))
+            band_names = src.descriptions
+            meta = src.meta
+
+        return Raster(img=image, meta=meta, band_names=band_names)
+
     def clip_to_bbox(self, bbox: List, bbox_crs="EPSG:4326") -> "Raster":
         clip_gdf = gpd.GeoDataFrame({"geometry": [box(*bbox)]}, crs=bbox_crs)
         if clip_gdf.crs != self.meta["crs"]:
@@ -56,7 +68,7 @@ class Raster:
         with rasterio.open(filename, "w", **self.meta) as dst:
             for b in range(self.num_bands):
                 band_num = b + 1
-                dst.write(self.img, band_num)
+                dst.write(self.img[:, :, b], band_num)
                 dst.set_band_description(band_num, self.band_names[b])
 
     def binarize(self):
